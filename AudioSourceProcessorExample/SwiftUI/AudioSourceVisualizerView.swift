@@ -2,9 +2,11 @@
 //  AudioSourceVisualizerView.swift
 //  AudioSourceProcessorExample
 //
-//  Created by Codex on 2/22/26.
+//  Created by Chad Codex on 2/22/26.
 //
 
+
+//Quick and dirty example by Chad. Use Metal for yourself 
 import AVFoundation
 import Combine
 import SwiftUI
