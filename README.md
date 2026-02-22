@@ -2,6 +2,8 @@
 
 Example macOS app showing how to use `DefaultAudioSourceProcessor` to analyze an audio source (audio file or video file with an audio track), generate an `AudioSource`, and visualize onset hits during playback.
 
+<img width="992" height="887" alt="image" src="https://github.com/user-attachments/assets/f362a982-a6b8-4497-9598-4a9fd566be25" />
+
 ## What This Repo Demonstrates
 
 - Selecting an audio or video file from SwiftUI (`ContentView`)
