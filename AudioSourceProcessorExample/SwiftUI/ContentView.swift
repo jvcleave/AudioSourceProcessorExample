@@ -16,6 +16,9 @@ struct ContentView: View {
     @State private var audioSource: AudioSource?
     @State private var errorMessage: String?
     @State private var fpsText: String = "30"
+    @State private var useConsolePlaybackRunner = false
+    @State private var consolePlaybackRunner: AudioSourcePlaybackRunner?
+    @State private var isConsolePlaybackRunning = false
 
     private let processor = DefaultAudioSourceProcessor()
     private let extractor = VideoAudioExtractor()
@@ -61,10 +64,21 @@ struct ContentView: View {
             if let audioSource {
                 summaryView(for: audioSource)
                 if let playbackURL = selectedURL ?? processedAudioURL ?? audioSource.audioFileURL {
-                    AudioSourceVisualizerView(
-                        audioSource: audioSource,
-                        playbackURL: playbackURL
-                    )
+                    Toggle("Use Console Playback Runner (prints to Xcode console)", isOn: $useConsolePlaybackRunner)
+                        .onChange(of: useConsolePlaybackRunner) { _, isEnabled in
+                            if !isEnabled {
+                                stopConsoleRunner()
+                            }
+                        }
+
+                    if useConsolePlaybackRunner {
+                        consoleRunnerControls(for: audioSource)
+                    } else {
+                        AudioSourceVisualizerView(
+                            audioSource: audioSource,
+                            playbackURL: playbackURL
+                        )
+                    }
                 }
             } else if !isProcessing {
                 Text("Choose an audio or video file to analyze.")
@@ -73,6 +87,9 @@ struct ContentView: View {
         }
         .padding()
         .frame(minWidth: 560, minHeight: 420, alignment: .topLeading)
+        .onDisappear {
+            stopConsoleRunner()
+        }
         .fileImporter(
             isPresented: $isImporterPresented,
             allowedContentTypes: [.audio, .movie],
@@ -130,6 +147,29 @@ struct ContentView: View {
         }
     }
 
+    private func consoleRunnerControls(for source: AudioSource) -> some View {
+        GroupBox("Console Playback Runner") {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 10) {
+                    Button(isConsolePlaybackRunning ? "Restart Runner" : "Start Runner") {
+                        startConsoleRunner(with: source)
+                    }
+                    .disabled(isProcessing)
+
+                    Button("Stop Runner") {
+                        stopConsoleRunner()
+                    }
+                    .disabled(!isConsolePlaybackRunning)
+                }
+
+                Text("Playback output (frames/onsets) is printed with `print(...)` to the Xcode console.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
     private var parsedFPS: Double? {
         let normalized = fpsText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let value = Double(normalized), value > 0 else { return nil }
@@ -138,6 +178,7 @@ struct ContentView: View {
 
     private func processFile(_ url: URL, fps: Double) async {
         await MainActor.run {
+            stopConsoleRunner()
             isProcessing = true
             errorMessage = nil
             audioSource = nil
@@ -191,6 +232,28 @@ struct ContentView: View {
             return false
         }
         return type.conforms(to: .movie) || type.conforms(to: .video)
+    }
+
+    private func startConsoleRunner(with source: AudioSource) {
+        do {
+            let runner = AudioSourcePlaybackRunner(audioSource: source)
+            runner.printsFrames = true
+            runner.printsOnsets = true
+            runner.printsSummary = true
+            try runner.start()
+            consolePlaybackRunner = runner
+            isConsolePlaybackRunning = true
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+            stopConsoleRunner()
+        }
+    }
+
+    private func stopConsoleRunner() {
+        consolePlaybackRunner?.stop()
+        consolePlaybackRunner = nil
+        isConsolePlaybackRunning = false
     }
 }
 

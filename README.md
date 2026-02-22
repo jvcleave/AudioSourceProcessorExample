@@ -22,6 +22,8 @@ Example macOS app showing how to use `DefaultAudioSourceProcessor` to analyze an
   - Per-frame analysis values (RMS, loudness, onset metadata).
 - `AudioOnset`
   - Onset/transient metadata for detected hits.
+- `AudioSourcePlaybackRunner`
+  - Minimal non-UI player that prints frame and onset data to the console during playback.
 
 ## Running the Example
 
@@ -55,6 +57,28 @@ let source = try await processor.processURL(audioURL, fps: fps)
 - `frames` with per-frame measurements
 - onset data (`AudioOnset`) attached to frames where onsets are found
 - summary metrics (`averageBPM`, `averageRMS`, `averageLoudnessDB`, etc.)
+
+## Minimal Console Playback Runner
+
+This repo also includes `AudioSourcePlaybackRunner`, a minimal helper that:
+
+- plays `audioSource.audioFileURL`
+- prints frame data to the console as playback advances
+- prints onset hits when playback crosses frames with detected onsets
+
+Example usage:
+
+```swift
+guard let source = try await processor.processURL(audioURL, fps: fps) else { return }
+
+let runner = AudioSourcePlaybackRunner(audioSource: source)
+try runner.start()
+```
+
+Important:
+
+- Keep a strong reference to `runner` while playback is active (for example, store it on a view model or controller property).
+- `AudioSourcePlaybackRunner` prints to the Xcode console using `print(...)`.
 
 ## Implementing Your Own `BaseAudioSourceProcessor`
 
