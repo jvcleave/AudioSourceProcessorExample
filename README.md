@@ -2,7 +2,7 @@
 
 Example macOS app showing how to use `DefaultAudioSourceProcessor` to analyze an audio source (audio file or video file with an audio track), generate an `AudioSource`, and visualize onset hits during playback.
 
-<img width="992" height="887" alt="image" src="https://github.com/user-attachments/assets/f362a982-a6b8-4497-9598-4a9fd566be25" />
+<img width="988" height="884" alt="image" src="https://github.com/user-attachments/assets/06037b22-39d9-4596-887b-b3a370bf3860" />
 
 ## What This Repo Demonstrates
 
